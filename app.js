@@ -15,10 +15,16 @@ app.use(express.json());
 
 app.use(
 	cors({
-		origin: true, 
-		credentials: true,
+		origin: '*',
 	}),
 );
+
+app.get('/', (req, res) => {
+	res.status(200).json({
+		status: 'success',
+		message: 'API is running',
+	});
+});
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
