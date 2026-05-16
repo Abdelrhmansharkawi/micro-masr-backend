@@ -3,7 +3,6 @@ const Vehicle = require('../models/vehicleModel');
 const Driver = require('../models/driverModel');
 const Booking = require('../models/bookingModel');
 
-
 exports.getAvailableTrips = async (req, res) => {
 	try {
 		const { from, to, date } = req.query;
@@ -147,6 +146,50 @@ exports.getTripSeats = async (req, res) => {
 				bookedSeats,
 			},
 		});
+	} catch (err) {
+		res.status(500).json({ status: 'error', message: err.message });
+	}
+};
+
+exports.completeTrip = async (req, res) => {
+	try {
+		const tripId = req.params.id;
+		const trip = await Trip.findById(tripId).populate('driver');
+
+		if (!trip) {
+			return res
+				.status(404)
+				.json({ status: 'fail', message: 'Trip not found' });
+		}
+
+		// Only the driver who owns the trip can complete it
+		if (trip.driver.user.toString() !== req.user._id.toString()) {
+			return res
+				.status(403)
+				.json({ status: 'fail', message: 'Not authorized' });
+		}
+
+		if (trip.status !== 'ongoing') {
+			return res
+				.status(400)
+				.json({ status: 'fail', message: 'Trip is not ongoing' });
+		}
+
+		trip.status = 'completed';
+		await trip.save();
+
+		// Increment driver's totalTrips
+		const Driver = require('../models/driverModel');
+		await Driver.findByIdAndUpdate(trip.driver._id, {
+			$inc: { totalTrips: 1 },
+		});
+
+		res
+			.status(200)
+			.json({
+				status: 'success',
+				data: { tripId: trip._id, status: 'completed' },
+			});
 	} catch (err) {
 		res.status(500).json({ status: 'error', message: err.message });
 	}

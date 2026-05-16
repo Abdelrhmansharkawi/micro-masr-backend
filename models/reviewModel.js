@@ -25,6 +25,11 @@ const reviewSchema = new mongoose.Schema(
 			max: 5,
 			required: true,
 		},
+		
+		tags: {
+			type: [String],
+			default: [],
+		},
 
 		comment: String,
 	},

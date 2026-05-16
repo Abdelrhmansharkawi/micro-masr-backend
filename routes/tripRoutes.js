@@ -17,5 +17,10 @@ router.get(
 	authMiddleware.protect,
 	trackingController.getTrackingInfo,
 );
+router.patch(
+	'/:id/complete',
+	authMiddleware.protect,
+	tripController.completeTrip,
+);
 
 module.exports = router;

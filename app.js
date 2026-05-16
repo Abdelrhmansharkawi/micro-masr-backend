@@ -7,6 +7,9 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const savedPlaceRoutes = require('./routes/savedPlaceRoutes.js');
 const popularDestinationRoutes = require('./routes/popularDestinationRoutes.js');
 const bookingRoutes = require('./routes/bookingRoutes');
+const userRoutes = require('./routes/userRoutes');
+const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -33,5 +36,8 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/places', savedPlaceRoutes);
 app.use('/api/v1/destinations', popularDestinationRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/payment-methods', paymentMethodRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
 
 module.exports = app;

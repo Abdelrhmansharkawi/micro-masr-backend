@@ -2,6 +2,20 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const notificationSettingsSchema = new mongoose.Schema(
+	{
+		bookingUpdates: { type: Boolean, default: true },
+		microbusArrival: { type: Boolean, default: true },
+		tripRating: { type: Boolean, default: true },
+		newCoupons: { type: Boolean, default: true },
+		systemNews: { type: Boolean, default: false },
+		pushEnabled: { type: Boolean, default: true },
+		smsEnabled: { type: Boolean, default: false },
+		emailEnabled: { type: Boolean, default: false },
+	},
+	{ _id: false },
+);
+
 const userSchema = new mongoose.Schema(
 	{
 		fullName: {
@@ -48,11 +62,17 @@ const userSchema = new mongoose.Schema(
 			min: 0,
 			max: 5,
 		},
+		balance: {
+			type: Number,
+			default: 0,
+		},
+		notificationSettings: {
+			type: notificationSettingsSchema,
+			default: () => ({}), // يستخدم القيم الافتراضية أعلاه
+		},
 	},
 	{ timestamps: true },
 );
-
-
 
 // Hash password
 userSchema.pre('save', async function () {
