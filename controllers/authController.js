@@ -27,6 +27,9 @@ exports.register = async (req, res) => {
 		const token = signToken(user._id, user.role);
 		user.password = undefined;
 
+		const unreadCount = 0; // New user has 0 unread notifications
+		const tripsCount = 0; // New user has 0 trips
+
 		res.status(201).json({
 			status: 'success',
 			token,
@@ -65,6 +68,15 @@ exports.login = async (req, res) => {
 				message: 'Incorrect email or password',
 			});
 		}
+
+		const unreadCount = await Notification.countDocuments({
+			user: user._id,
+			isRead: false,
+		});
+		const tripsCount = await Booking.countDocuments({
+			user: user._id,
+			status: 'completed',
+		});
 
 		// 4) Send token
 		const token = signToken(user._id, user.role);
