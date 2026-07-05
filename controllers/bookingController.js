@@ -12,6 +12,14 @@ exports.createBooking = async (req, res) => {
 			});
 		}
 
+		const uniqueSeats = [...new Set(seats)];
+		if (uniqueSeats.length !== seats.length) {
+			return res.status(400).json({
+				status: 'fail',
+				message: 'Duplicate seat numbers are not allowed',
+			});
+		}
+
 		const trip = await Trip.findById(tripId).populate('vehicle');
 		if (!trip) {
 			return res

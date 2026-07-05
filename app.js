@@ -10,17 +10,15 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const configRoutes = require('./routes/configRoutes');
 
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(cors({ origin: '*' }));
 
-app.use(
-	cors({
-		origin: '*',
-	}),
-);
+app.use(express.json());
 
 app.get('/', (req, res) => {
 	res.status(200).json({
@@ -39,5 +37,7 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/payment-methods', paymentMethodRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1', paymentRoutes);
+app.use('/api/v1/config', configRoutes);
 
 module.exports = app;

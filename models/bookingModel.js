@@ -60,6 +60,8 @@ const bookingSchema = new mongoose.Schema(
 			enum: ['pending', 'paid', 'refunded'],
 			default: 'pending',
 		},
+		paymentToken: { type: String },
+		paymobOrderId: { type: String },
 
 		seats: {
 			type: [Number],
@@ -75,6 +77,5 @@ const bookingSchema = new mongoose.Schema(
 
 	{ timestamps: true },
 );
-
 
 module.exports = mongoose.model('Booking', bookingSchema);

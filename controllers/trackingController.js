@@ -2,6 +2,23 @@
 const Trip = require('../models/tripModel');
 const Booking = require('../models/bookingModel');
 
+// Distance in meters between two [lng, lat] points (haversine)
+const _distanceMeters = (coordsA, coordsB) => {
+	if (!coordsA || !coordsB) return Infinity;
+	const [lng1, lat1] = coordsA;
+	const [lng2, lat2] = coordsB;
+	const R = 6371000; // Earth radius in meters
+	const toRad = (deg) => (deg * Math.PI) / 180;
+	const dLat = toRad(lat2 - lat1);
+	const dLng = toRad(lng2 - lng1);
+	const a =
+		Math.sin(dLat / 2) ** 2 +
+		Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+	return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const ARRIVED_THRESHOLD_METERS = 200;
+
 exports.getTrackingInfo = async (req, res) => {
 	try {
 		const tripId = req.params.id;
@@ -36,11 +53,16 @@ exports.getTrackingInfo = async (req, res) => {
 		let remainingMinutes = 6;
 
 		if (trip.status === 'ongoing') {
-			if (
-				trip.currentLocation &&
-				trip.startLocation &&
-				trip.startLocation.location
-			) {
+			const driverCoords =
+				trip.currentLocation?.coordinates ||
+				trip.startLocation?.location?.coordinates;
+			const pickupCoords =
+				booking.pickupPoint?.coordinates ||
+				booking.pickupPoint?.location?.coordinates;
+
+			const distanceToPickup = _distanceMeters(driverCoords, pickupCoords);
+
+			if (distanceToPickup <= ARRIVED_THRESHOLD_METERS) {
 				currentStep = 'arrived';
 			} else {
 				currentStep = 'inTrip';

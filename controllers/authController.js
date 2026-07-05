@@ -27,8 +27,8 @@ exports.register = async (req, res) => {
 		const token = signToken(user._id, user.role);
 		user.password = undefined;
 
-		const unreadCount = 0; // New user has 0 unread notifications
-		const tripsCount = 0; // New user has 0 trips
+		const unreadCount = 0; 
+		const tripsCount = 0; 
 
 		res.status(201).json({
 			status: 'success',

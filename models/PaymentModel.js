@@ -54,7 +54,7 @@ const paymentSchema = new mongoose.Schema(
 
 		provider: {
 			type: String,
-			enum: ['stripe', 'fawry', 'manual', null],
+			enum: ['stripe', 'fawry', 'paymob', 'manual', null],
 			default: null,
 		},
 

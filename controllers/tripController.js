@@ -3,6 +3,15 @@ const Vehicle = require('../models/vehicleModel');
 const Driver = require('../models/driverModel');
 const Booking = require('../models/bookingModel');
 
+// Helper to extract lat/lng from a GeoJSON location object
+const _extractLatLng = (location) => {
+	if (!location || !location.location || !location.location.coordinates) {
+		return { lat: null, lng: null };
+	}
+	const [lng, lat] = location.location.coordinates;
+	return { lat, lng };
+};
+
 exports.getAvailableTrips = async (req, res) => {
 	try {
 		const { from, to, date } = req.query;
@@ -36,10 +45,23 @@ exports.getAvailableTrips = async (req, res) => {
 			})
 			.sort('departureTime');
 
+		// Transform each trip to include startLat, startLng, endLat, endLng
+		const formattedTrips = trips.map((trip) => {
+			const start = _extractLatLng(trip.startLocation);
+			const end = _extractLatLng(trip.endLocation);
+			return {
+				...trip.toObject(),
+				startLat: start.lat,
+				startLng: start.lng,
+				endLat: end.lat,
+				endLng: end.lng,
+			};
+		});
+
 		res.status(200).json({
 			status: 'success',
-			results: trips.length,
-			data: trips,
+			results: formattedTrips.length,
+			data: formattedTrips,
 		});
 	} catch (err) {
 		res.status(500).json({
@@ -61,12 +83,23 @@ exports.getNearbyTrips = async (req, res) => {
 			});
 		}
 
-		const radius = distance / 6378.1; // Earth radius in KM
+		const latNum = parseFloat(lat);
+		const lngNum = parseFloat(lng);
+		const distanceNum = parseFloat(distance);
+
+		if (isNaN(latNum) || isNaN(lngNum) || isNaN(distanceNum)) {
+			return res.status(400).json({
+				status: 'fail',
+				message: 'lat, lng, and distance must be valid numbers',
+			});
+		}
+
+		const radius = distanceNum / 6378.1; // Earth radius in KM
 
 		const trips = await Trip.find({
 			'startLocation.location': {
 				$geoWithin: {
-					$centerSphere: [[lng, lat], radius],
+					$centerSphere: [[lngNum, latNum], radius],
 				},
 			},
 			status: 'scheduled',
@@ -80,10 +113,23 @@ exports.getNearbyTrips = async (req, res) => {
 				},
 			});
 
+		// Transform each trip
+		const formattedTrips = trips.map((trip) => {
+			const start = _extractLatLng(trip.startLocation);
+			const end = _extractLatLng(trip.endLocation);
+			return {
+				...trip.toObject(),
+				startLat: start.lat,
+				startLng: start.lng,
+				endLat: end.lat,
+				endLng: end.lng,
+			};
+		});
+
 		res.status(200).json({
 			status: 'success',
-			results: trips.length,
-			data: trips,
+			results: formattedTrips.length,
+			data: formattedTrips,
 		});
 	} catch (err) {
 		res.status(500).json({
@@ -109,9 +155,19 @@ exports.getTripById = async (req, res) => {
 			});
 		}
 
+		const start = _extractLatLng(trip.startLocation);
+		const end = _extractLatLng(trip.endLocation);
+		const tripObj = {
+			...trip.toObject(),
+			startLat: start.lat,
+			startLng: start.lng,
+			endLat: end.lat,
+			endLng: end.lng,
+		};
+
 		res.status(200).json({
 			status: 'success',
-			data: trip,
+			data: tripObj,
 		});
 	} catch (err) {
 		res.status(500).json({
@@ -184,12 +240,10 @@ exports.completeTrip = async (req, res) => {
 			$inc: { totalTrips: 1 },
 		});
 
-		res
-			.status(200)
-			.json({
-				status: 'success',
-				data: { tripId: trip._id, status: 'completed' },
-			});
+		res.status(200).json({
+			status: 'success',
+			data: { tripId: trip._id, status: 'completed' },
+		});
 	} catch (err) {
 		res.status(500).json({ status: 'error', message: err.message });
 	}

@@ -6,6 +6,5 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 router.use(authMiddleware.protect);
 router.post('/', bookingController.createBooking);
-router.post('/:bookingId/pay', paymentController.simulatePayment);
 
 module.exports = router;
